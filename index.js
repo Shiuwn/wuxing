@@ -2,11 +2,12 @@ const query = (sel) => {
   return document.querySelector(sel)
 }
 const abs = (val) => Math.abs(val)
+const random = (min, max) => Math.floor(Math.random() * (max - min)) + min
 
 const genNum =
   (start = 0) =>
   () => {
-    return start++ % Number.MAX_SAFE_INTEGER
+    return start++
   }
 const genId = genNum(0)
 const genTaskId = genNum(0)
@@ -14,50 +15,111 @@ const genTaskId = genNum(0)
 const Attrs = [
   {
     type: 'gold',
+    name: '金',
     opposite: 'fire',
     friend: 'soil',
   },
   {
     type: 'wood',
+    name: '木',
     opposite: 'gold',
     friend: 'water',
   },
   {
     type: 'water',
+    name: '水',
     opposite: 'soil',
     friend: 'gold',
   },
   {
     type: 'fire',
+    name: '火',
     opposite: 'water',
     friend: 'wood',
   },
   {
     type: 'soil',
+    name: '土',
     opposite: 'wood',
     friend: 'fire',
   },
 ]
 
 class Game {
-  constructor() {}
-  start() {}
-  perform() {}
-  stop() {}
+  #width = 400
+  #height = 600
+  #manager = null
+  #timer = null
+  #container = null
+  constructor(options = {}) {
+    this.#width = options.width || 400
+    this.#height = options.height || 600
+    this.#manager = new Manager(this)
+    this.#container = query(options.container || '#app')
+  }
+  start() {
+    if (!this.#timer) {
+      this.update()
+    }
+  }
+  stop() {
+    if (this.#timer) {
+      cancelAnimationFrame(this.#timer)
+      this.#timer = null
+    }
+  }
+  getSceneSize() {
+    return [this.#width, this.#height]
+  }
+  update() {
+    this.#manager.blocks.forEach((block) => block.update())
+    this.#timer = requestAnimationFrame(() => {
+      this.update()
+    })
+  }
+  produceBlocks() {
+    this.#manager.produce()
+  }
 }
 
 class Manager {
-  collection = []
-  constructor() {}
+  #count = 10
+  blocks = []
+  #game = null
+  constructor(/**@type {Game} */ game) {
+    this.#game = game
+  }
+  add(block) {
+    this.blocks.push(block)
+  }
+  produce() {
+    const [width] = this.getBoundary()
+    const interval = Math.floor(width / this.#count)
+    for (let i = 0; i < this.#count; i++) {
+      const block = new Block()
 
-  add(dom) {
-    this.collection.push(dom)
+      this.add(
+        block.init({
+          length: 60,
+          x: random(interval * i, interval * (i + 1)),
+          y: -60,
+          vx: 0,
+          vy: random(5, 10),
+          a: 0,
+        })
+      )
+    }
+    this.#game
+    return this
+  }
+  getBoundary() {
+    return this.#game.getSceneSize()
   }
 }
 
 class Block {
   name = ''
-  edge = 0
+  length = 0
   vx = 0
   vy = 0
   a = 0
@@ -68,19 +130,22 @@ class Block {
   buff = 1
   dom = null
   tasks = []
+  hidden = false
   constructor() {
     this.id = genId()
   }
 
   init(opt) {
     this.name = opt.name
-    this.edge = opt.edge
+    this.length = opt.length
     this.vx = opt.vx
     this.vy = opt.vy
     this.a = opt.a
     this.x = opt.x
     this.y = opt.y
-    this.dom = opt.dom
+    this.attr = opt.attr
+    this.hidden = false
+    this.dom = opt.dom || this.genDom()
     return this
   }
 
@@ -102,14 +167,35 @@ class Block {
 
   collide() {}
 
-  update() {
+  isOutBoundary(/**@type {Manager} */ manager) {
+    const [width, height] = manager.getBoundary()
+
+    if (
+      this.x + this.length < 0 ||
+      this.x > width ||
+      this.y + this.length < 0 ||
+      this.y > height
+    )
+      return true
+    return false
+  }
+
+  update(/**@type {Manager} */ manager) {
     this.tasks.slice().forEach((frame) => {
       frame && frame.perform && frame.perform()
     })
+
     this.vx += this.a
     this.vy += this.a
     this.x += this.vx
-    this.y += vy
+    this.y += this.vy
+
+    this.dom.style.left = this.x + 'px'
+    this.dom.style.top = this.y + 'px'
+
+    if (this.isOutBoundary(manager)) {
+      this.remove()
+    }
     return this
   }
   toV(v, dir = 'vx') {
@@ -118,7 +204,7 @@ class Block {
     const task = {
       id: genTaskId(),
       perform: () => {
-        if(abs(v, this[dir]) < this.a) {
+        if (abs(v, this[dir]) < this.a) {
           this.removeTask(task)
           return
         }
@@ -132,13 +218,23 @@ class Block {
     this.addTask(task)
   }
   resize() {}
-  remove() {}
   addTask(task) {
     this.tasks.push(task)
   }
   removeTask(task) {
     const index = this.tasks.findIndex((t) => task && t.id === task.id)
-    index>-1 && this.tasks.splice(index, 1)
+    index > -1 && this.tasks.splice(index, 1)
+  }
+  genDom() {
+    const div = document.createElement('div')
+    div.className = `block ${this.attr.type}`
+    div.textContent = this.attr.name
+
+    return div
+  }
+  remove() {
+    this.hidden = true
+    this.dom.style.display = 'none'
   }
 }
 
@@ -166,6 +262,10 @@ class Package {
   }
 }
 
-function main() {}
+function main() {
+  const game = new Game()
+  game.produceBlocks()
+  game.start()
+}
 
 main()
