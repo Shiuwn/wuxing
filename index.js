@@ -50,12 +50,14 @@ class Game {
   #height = 600
   #manager = null
   #timer = null
-  #container = null
+  container = null
   constructor(options = {}) {
     this.#width = options.width || 400
     this.#height = options.height || 600
     this.#manager = new Manager(this)
-    this.#container = query(options.container || '#app')
+    this.container = query(options.container || '#app')
+    this.container.style.width = `${this.#width}px`
+    this.container.style.height = `${this.#height}px`
   }
   start() {
     if (!this.#timer) {
@@ -72,7 +74,7 @@ class Game {
     return [this.#width, this.#height]
   }
   update() {
-    this.#manager.blocks.forEach((block) => block.update())
+    this.#manager.blocks.forEach((block) => block.update(this.#manager))
     this.#timer = requestAnimationFrame(() => {
       this.update()
     })
@@ -83,7 +85,7 @@ class Game {
 }
 
 class Manager {
-  #count = 10
+  #count = 5
   blocks = []
   #game = null
   constructor(/**@type {Game} */ game) {
@@ -98,18 +100,27 @@ class Manager {
     for (let i = 0; i < this.#count; i++) {
       const block = new Block()
 
+      const randomIndex = random(0, Attrs.length)
+      const length = 20
       this.add(
         block.init({
-          length: 60,
-          x: random(interval * i, interval * (i + 1)),
-          y: -60,
+          length,
+          x:
+            random(
+              interval * i + interval / 4,
+              interval * i + (interval * 3) / 4
+            ) -
+            length / 2,
+          y: -20,
           vx: 0,
-          vy: random(5, 10),
+          vy: random(1, 3),
           a: 0,
+          attr: Attrs[randomIndex],
+          name: Attrs[randomIndex].name,
         })
       )
+      this.#game.container.appendChild(block.dom)
     }
-    this.#game
     return this
   }
   getBoundary() {
@@ -146,6 +157,11 @@ class Block {
     this.attr = opt.attr
     this.hidden = false
     this.dom = opt.dom || this.genDom()
+    this.dom.style.cssText = `
+      line-height: ${this.length}px;
+      width: ${this.length}px;
+      height: ${this.length}px;
+    `
     return this
   }
 
@@ -162,6 +178,7 @@ class Block {
     this.buff = 1
     this.dom = null
     this.tasks.length = 0
+    this.attr = null
     return this
   }
 
@@ -235,6 +252,7 @@ class Block {
   remove() {
     this.hidden = true
     this.dom.style.display = 'none'
+    this.dom.remove()
   }
 }
 
@@ -263,7 +281,10 @@ class Package {
 }
 
 function main() {
-  const game = new Game()
+  const game = new Game({
+    width: 400,
+    height: 600,
+  })
   game.produceBlocks()
   game.start()
 }

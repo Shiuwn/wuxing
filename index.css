@@ -3,6 +3,7 @@ body {
   padding: 0;
 }
 #app {
+  overflow: hidden;
   position: relative;
   margin: auto;
   border: 1px solid #ddd;
