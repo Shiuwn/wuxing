@@ -85,7 +85,7 @@ class Game {
 }
 
 class Manager {
-  #count = 5
+  #count = 10
   blocks = []
   #game = null
   constructor(/**@type {Game} */ game) {
@@ -113,7 +113,7 @@ class Manager {
             length / 2,
           y: -20,
           vx: 0,
-          vy: random(1, 3),
+          vy: random(0.5, 5),
           a: 0,
           attr: Attrs[randomIndex],
           name: Attrs[randomIndex].name,
