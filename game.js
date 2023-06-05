@@ -5,6 +5,7 @@ const AS_TYPE = {
   BOMB: 'bomb'
 }
 
+const fragment = document.createDocumentFragment()
 class Vector {
   x = 0
   y = 0
@@ -42,8 +43,7 @@ class Block {
   width = 10
   // 作为进攻者或者炮弹
   as = AS_TYPE.ATTACKER
-  // 是否激活
-  active = false
+  #_active = false
   /**
    * @prop {string} 类型
    */
@@ -53,16 +53,26 @@ class Block {
    * @type {number}
    */
   payload = 10
-  duration = 100
+  // 动画间隔时长
+  duration = 1000
+  // 每一次步进的距离像素
+  step = 10
   /**
+   * 对象对应的dom
    * @type {HTMLElement}
    */
   dom = null
-
-  constructor(type, asType = AS_TYPE.ATTACKER) {
+  constructor({
+    type,
+    asType,
+    step,
+    duration
+  }) {
     this.type = type
     this.as = asType
     this.active = true
+    this.duration = duration
+    this.step = step
   }
 
   /**
@@ -82,10 +92,23 @@ class Block {
     ))
   }
 
+  set active(val) {
+    this.#_active = !!val
+    this.onInactive()
+  }
+  get active() {
+    return this.#_active
+  }
   /**
    * 更新位置
    */
   update() { }
+  /**
+   * 失活时触发的事件
+   */
+  onInactive() {
+    dom && fragment.appendChild(this.dom)
+  }
 }
 
 
