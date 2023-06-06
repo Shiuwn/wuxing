@@ -1,4 +1,5 @@
 import { Attrs } from './config'
+import gsap from 'gsap'
 
 const AS_TYPE = {
   ATTACKER: 'attacker',
@@ -62,6 +63,14 @@ class Block {
    * @type {HTMLElement}
    */
   dom = null
+  /**
+   * @type {gsap.core.Tween|null}
+   */
+  tween = null
+  /**
+   * 配置项
+   * @param {{type: string, asType: string, step: number, duration: number}} options
+   */
   constructor({
     type,
     asType,
@@ -73,6 +82,24 @@ class Block {
     this.active = true
     this.duration = duration
     this.step = step
+    this.dom = document.createElement('div')
+    this.tween = gsap.to(this.dom, {
+      x: this.position.x,
+      y: this.position.y,
+      duration: this.duration / 1000,
+      paused: true
+    })
+
+    this.tween.eventCallback('onUpdate', () => this.onUpdate())
+  }
+
+  setStyle() {
+    this.dom.style.cssText = `
+      width: ${this.width}px;
+      height: ${this.height}px;
+      left: ${this.position.x}px;
+      top: ${this.position.y}px;
+    `
   }
 
   /**
@@ -94,7 +121,7 @@ class Block {
 
   set active(val) {
     this.#_active = !!val
-    this.onInactive()
+    !val && this.onInactive()
   }
   get active() {
     return this.#_active
@@ -102,12 +129,25 @@ class Block {
   /**
    * 更新位置
    */
-  update() { }
+  update() {
+  }
+  // 更新事件
+  onUpdate() {
+  }
+  pause() {
+    this.tween?.pause()
+  }
+  resume() {
+    this.tween?.resume()
+  }
+  play() {
+    this.tween?.play()
+  }
   /**
    * 失活时触发的事件
    */
   onInactive() {
-    dom && fragment.appendChild(this.dom)
+    this.dom && fragment.appendChild(this.dom)
   }
 }
 
@@ -184,10 +224,10 @@ class Game {
   score = 0
   /**
    * 配置
-   * @param {{zone: number, duration: number}} options
+   * @param {{zoneLine: number, duration: number}} options
    */
   constructor(options) {
-    this.safeZone = options.zone
+    this.safeZone = options.zoneLine
     this.duration = duration
     /**@type {Collector} */
     this.collector = new Collector()
@@ -225,6 +265,13 @@ class Game {
    */
   intoSafeZone(block) {
     return block.position.y + block.height >= this.safeZone
+  }
+
+  /**
+   * 开始
+   */
+  start() {
+
   }
 
 }
