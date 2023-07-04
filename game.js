@@ -1,5 +1,6 @@
 import { Attrs } from './config'
 import gsap from 'gsap'
+import { createError } from './utils'
 
 const AS_TYPE = {
   ATTACKER: 'attacker',
@@ -16,12 +17,48 @@ class Vector {
   }
 
 }
-class Block {
+
+class AnimateObj {
+  animate(option = {}) {
+    this.tween = gsap.to(this, {
+      paused: true,
+      ...option,
+      onUpdate: () => {
+        this.render()
+      }
+    })
+    return this
+  }
+  start() {
+    this.tween?.play()
+    return this
+  }
+  update(fn) {
+    this.tween?.eventCallback('onUpdate', () => {
+      fn && fn()
+    })
+    return this
+  }
+  end(fn) {
+    this.tween?.eventCallback('onComplete', () => {
+      fn && fn()
+      this.tween = null
+    })
+    return this
+  }
+  render() {
+    createError('render method should be override')
+  }
+}
+class Block extends AnimateObj {
   /**
    * 位置
    * @prop {Vector}
    */
   position = new Vector()
+  // 位置
+  x = 0
+  y = 0
   /**
    * 速度
    * @prop {Vector}
@@ -55,7 +92,7 @@ class Block {
    */
   payload = 10
   // 动画间隔时长
-  duration = 1000
+  durationSeconds = 1
   // 每一次步进的距离像素
   step = 10
   /**
@@ -77,20 +114,23 @@ class Block {
     step,
     duration
   }) {
+    super()
     this.type = type
     this.as = asType
     this.active = true
     this.duration = duration
     this.step = step
     this.dom = document.createElement('div')
-    this.tween = gsap.to(this.dom, {
-      x: this.position.x,
-      y: this.position.y,
-      duration: this.duration / 1000,
-      paused: true
-    })
+  }
 
-    this.tween.eventCallback('onUpdate', () => this.onUpdate())
+  render() {
+    this.setStyle()
+  }
+  reset() {
+    this.x = 0
+    this.y = 0
+    this.width = 10
+    this.height = 10
   }
 
   setStyle() {
@@ -136,12 +176,11 @@ class Block {
   }
   pause() {
     this.tween?.pause()
+    return this
   }
   resume() {
     this.tween?.resume()
-  }
-  play() {
-    this.tween?.play()
+    return this
   }
   /**
    * 失活时触发的事件
@@ -219,7 +258,7 @@ class Manager {
 // 游戏
 class Game {
   // 安全区的位置
-  safeZone = 100
+  boundary = 100
   // 分数
   score = 0
   /**
@@ -227,7 +266,7 @@ class Game {
    * @param {{zoneLine: number, duration: number}} options
    */
   constructor(options) {
-    this.safeZone = options.zoneLine
+    this.boundary = options.zoneLine
     this.duration = duration
     /**@type {Collector} */
     this.collector = new Collector()
@@ -264,7 +303,7 @@ class Game {
    * @returns
    */
   intoSafeZone(block) {
-    return block.position.y + block.height >= this.safeZone
+    return block.position.y + block.height >= this.boundary
   }
 
   /**
