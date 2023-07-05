@@ -1,6 +1,7 @@
 import { Attrs } from './config'
-import gsap from 'gsap'
+import gsap, { random } from 'gsap'
 import { createError } from './utils'
+import $ from 'jquery'
 
 const AS_TYPE = {
   ATTACKER: 'attacker',
@@ -57,8 +58,8 @@ class Block extends AnimateObj {
    */
   position = new Vector()
   // 位置
-  x = 0
-  y = 0
+  #_x = 0
+  #_y = 0
   /**
    * 速度
    * @prop {Vector}
@@ -94,7 +95,7 @@ class Block extends AnimateObj {
   // 动画间隔时长
   durationSeconds = 1
   // 每一次步进的距离像素
-  step = 10
+  step = 2
   /**
    * 对象对应的dom
    * @type {HTMLElement}
@@ -118,9 +119,10 @@ class Block extends AnimateObj {
     this.type = type
     this.as = asType
     this.active = true
-    this.duration = duration
-    this.step = step
+    this.durationSeconds = duration || 1
+    this.step = step || 2
     this.dom = document.createElement('div')
+    this.timeSpan = random(500, 3000)
   }
 
   render() {
@@ -131,6 +133,24 @@ class Block extends AnimateObj {
     this.y = 0
     this.width = 10
     this.height = 10
+  }
+
+  get x() {
+    return this.#_x
+  }
+  get y() {
+    return this.#_y
+  }
+
+  set x(val) {
+    if (typeof val !== 'number') return
+    this.#_x = val
+    this.position.x = val
+  }
+  set y(val) {
+    if (typeof val !== 'number') return
+    this.#_y = val
+    this.position.y = val
   }
 
   setStyle() {
@@ -188,6 +208,14 @@ class Block extends AnimateObj {
   onInactive() {
     this.dom && fragment.appendChild(this.dom)
   }
+  tick(fn) {
+    if (!this.#_active) return this
+    this.timer = setTimeout(() => {
+      this.tick(fn)
+    }, this.timeSpan)
+    fn && fn()
+    return this
+  }
 }
 
 
@@ -238,16 +266,17 @@ class Manager {
    */
   blocks = []
   /**
-   * @param {string} type 类型
    * @param {number} num 生成的数量
+   * @param {string} type 类型
+   * @param {string} asType 扮演的角色
    */
-  make(type, num = 1) {
+  make(num = 1, type, asType = AS_TYPE.ATTACKER) {
     let blocks = this.blocks.filter((d) => !d.active)
     const increment = num - blocks.length
     if (increment < 0) {
       blocks = blocks.slice(0, -increment)
     } else {
-      const added = Array(increment).fill(null).map(() => new Block(type))
+      const added = Array(increment).fill(null).map(() => new Block({ type: type ? type : random(Attrs).type, asType }))
       blocks.push(...added)
       this.blocks.push(...added)
     }
@@ -263,15 +292,14 @@ class Game {
   score = 0
   /**
    * 配置
-   * @param {{zoneLine: number, duration: number}} options
+   * @param {{boundary: number, duration: number, $container: JQuery|string}} options
    */
   constructor(options) {
-    this.boundary = options.zoneLine
+    this.boundary = options.boundary || 100
     this.duration = duration
-    /**@type {Collector} */
     this.collector = new Collector()
-    /**@type {Manager} */
     this.manager = new Manager()
+    this.$container = $(options.$container)
   }
   // 更新
   update() {
@@ -291,7 +319,6 @@ class Game {
   // 开火
   fire() {
 
-
   }
   // 切换炮弹
   toggle() {
@@ -310,6 +337,8 @@ class Game {
    * 开始
    */
   start() {
+    const containerWidth = this.$container.width()
+    this.manager.make(1)
 
   }
 
