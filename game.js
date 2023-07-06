@@ -1,8 +1,9 @@
 import { Attrs } from './config'
-import gsap, { random } from 'gsap'
+import gsap from 'gsap'
 import { createError } from './utils'
 import $ from 'jquery'
 
+const { random } = gsap.utils
 const AS_TYPE = {
   ATTACKER: 'attacker',
   BOMB: 'bomb'
@@ -120,8 +121,9 @@ class Block extends AnimateObj {
     this.as = asType
     this.active = true
     this.durationSeconds = duration || 1
-    this.step = step || 2
+    this.step = step || 10
     this.dom = document.createElement('div')
+    this.dom.classList.add('block')
     this.timeSpan = random(500, 3000)
   }
 
@@ -285,7 +287,7 @@ class Manager {
 }
 
 // 游戏
-class Game {
+export class Game {
   // 安全区的位置
   boundary = 100
   // 分数
@@ -296,7 +298,7 @@ class Game {
    */
   constructor(options) {
     this.boundary = options.boundary || 100
-    this.duration = duration
+    this.durationSeconds = options.duration || 1
     this.collector = new Collector()
     this.manager = new Manager()
     this.$container = $(options.$container)
@@ -338,7 +340,24 @@ class Game {
    */
   start() {
     const containerWidth = this.$container.width()
-    this.manager.make(1)
+    const blocks = this.manager.make(3)
+    const step = containerWidth / 3
+    const frag = document.createDocumentFragment()
+    blocks.forEach((b, i) => {
+      b.x = random(step * i, step * (i + 1))
+      b.y = -10
+      frag.appendChild(b.dom)
+      this.$container.get(0).appendChild(frag)
+      b.tick(() => {
+        b.animate({
+          y: b.y + b.step,
+
+        })
+          .start()
+      })
+
+
+    })
 
   }
 

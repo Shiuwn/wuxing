@@ -21,10 +21,17 @@ body {
 }
 
 #app {
+  position:relative;
   min-width: 360px;
   max-width: 720px;
   height: 90%;
   margin: 0 auto;
   border-radius: 4px;
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+.block {
+  position: absolute;
+  background-color: red;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
