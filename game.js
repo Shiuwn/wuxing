@@ -125,6 +125,7 @@ class Block extends AnimateObj {
     this.step = step || 10
     this.dom = document.createElement('div')
     this.dom.classList.add('block')
+    this.dom.classList.add(type)
     this.timeSpan = random(500, 3000)
   }
 

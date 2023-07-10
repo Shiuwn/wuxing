@@ -29,12 +29,31 @@ body {
   margin: 0 auto;
   border-radius: 4px;
   box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+  background-image: url(../images/texture.png);
+  background-repeat: repeat;
+  background-color: #fff;
+  transition: background-color 0.2s;
 }
 
 .block {
   position: absolute;
   background-color: red;
   box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
+}
+.block.fire {
+  background-color: #f20c00;
+}
+.block.water {
+  background-color: #70f3ff;
+}
+.block.gold {
+  background-color: #f26b1f;
+}
+.block.soil {
+  background-color: #d6a01d;
+}
+.block.wood {
+  background-color: #0c8918;
 }
 
 .boundary {
