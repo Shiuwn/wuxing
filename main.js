@@ -4,9 +4,10 @@ import { gsap } from 'gsap'
 import { Game } from './game'
 
 $(function () {
+  const $container = $('#app')
   const game = new Game({
-    $container: $('#app'),
-    boundary: 100
+    $container: $container,
+    boundary: $container.height() - 100
   })
 
   game.start()

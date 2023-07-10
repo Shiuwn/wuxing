@@ -37,6 +37,7 @@ class AnimateObj {
   }
   update(fn) {
     this.tween?.eventCallback('onUpdate', () => {
+      this.render()
       fn && fn()
     })
     return this
@@ -188,14 +189,6 @@ class Block extends AnimateObj {
   get active() {
     return this.#_active
   }
-  /**
-   * 更新位置
-   */
-  update() {
-  }
-  // 更新事件
-  onUpdate() {
-  }
   pause() {
     this.tween?.pause()
     return this
@@ -241,6 +234,7 @@ class Collector {
 
     // 同类型停止收集
     if (this.lists.map(d => d.type).indexOf(block.type) > -1) return false
+    fragment.appendChild(block.dom)
 
     this.lists.push(block)
     return true
@@ -302,6 +296,13 @@ export class Game {
     this.collector = new Collector()
     this.manager = new Manager()
     this.$container = $(options.$container)
+    this.createBoundary()
+
+  }
+  createBoundary() {
+    this.$boundary = $('<div class="boundary"/>')
+    this.$boundary.css({ top: this.boundary })
+    this.$container.append(this.$boundary)
   }
   // 更新
   update() {
@@ -353,6 +354,12 @@ export class Game {
           y: b.y + b.step,
 
         })
+          .update(() => {
+            if (this.intoSafeZone(b)) {
+              const success = this.collector.collect(b)
+
+            }
+          })
           .start()
       })
 
