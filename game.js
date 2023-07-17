@@ -6,7 +6,7 @@ import $ from 'jquery'
 const { random } = gsap.utils
 const AS_TYPE = {
   ATTACKER: 'attacker',
-  BOMB: 'bomb'
+  BULLET: 'bullet'
 }
 
 const fragment = document.createDocumentFragment()
@@ -327,7 +327,13 @@ export class Game {
   }
   // 开火
   fire() {
-
+  }
+  // 装填
+  fillBullet() {
+    if (!this.collector.lists.length) return
+    const bullet = this.collector.lists.shift()
+    bullet.as = AS_TYPE.BULLET
+    this.bullet = bullet
   }
   // 切换炮弹
   toggle() {
@@ -363,6 +369,7 @@ export class Game {
           .update(() => {
             if (this.intoSafeZone(b)) {
               const success = this.collector.collect(b)
+              if (!success) gsap.globalTimeline.pause()
 
             }
           })
@@ -370,6 +377,9 @@ export class Game {
       })
 
 
+    })
+    gsap.ticker.add((time) => {
+      console.log('time', time)
     })
 
   }
