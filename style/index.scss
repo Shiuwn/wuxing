@@ -21,7 +21,7 @@ body {
 }
 
 #app {
-  position:relative;
+  position: relative;
   overflow: hidden;
   min-width: 360px;
   max-width: 720px;
@@ -40,18 +40,23 @@ body {
   background-color: red;
   box-shadow: 0 0 10px rgba(255, 0, 0, 0.2);
 }
+
 .block.fire {
   background-color: #f20c00;
 }
+
 .block.water {
   background-color: #70f3ff;
 }
+
 .block.gold {
   background-color: #f26b1f;
 }
+
 .block.soil {
   background-color: #d6a01d;
 }
+
 .block.wood {
   background-color: #0c8918;
 }
@@ -63,4 +68,11 @@ body {
   background-color: #ddd;
   box-shadow: 0 0 3px rgba(100, 100, 100, 0.2);
   z-index: 1;
+}
+
+.bullets {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: flex;
 }

@@ -225,6 +225,9 @@ class Collector {
    * @type {Block[]}
    */
   lists = []
+  constructor() {
+    this.$bullets = $('<div class="bullets"/>')
+  }
   /**
    * 收集block
    * @param {Block} block
@@ -238,6 +241,7 @@ class Collector {
     fragment.appendChild(block.dom)
 
     this.lists.push(block)
+    this.$bullets.append($(block.dom))
     return true
   }
 
@@ -297,6 +301,7 @@ export class Game {
     this.collector = new Collector()
     this.manager = new Manager()
     this.$container = $(options.$container)
+    this.$container.append(this.collector.$bullets)
     this.createBoundary()
 
   }
