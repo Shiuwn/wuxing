@@ -76,3 +76,17 @@ body {
   bottom: 0;
   display: flex;
 }
+
+.guideline {
+  position: absolute;
+  width: 1px;
+  height: 100%;
+  border: 1px dashed #ddd;
+  transform: rotate(0);
+}
+.fort {
+  width: 20px;
+  height: 60px;
+  border-radius: 8px;
+  background-color: tomato;
+}

@@ -285,6 +285,37 @@ class Manager {
   }
 }
 
+// 炮台
+export class Fort {
+  angle = 0
+  power = 0
+  $container = null
+  constructor($container) {
+    this.$container = $container
+    this.$guideline = $('<div class="guideline" />')
+    this.$fort = $('<div class="fort" />')
+    this.$container.append(this.$guideline)
+  }
+  rotate() {
+
+  }
+  bindEvent() {
+    const oldPos = new Vector(0, 0)
+    const newPos = new Vector(0, 0)
+    this.$fort.on('mousedown', (e) => {
+      oldPos.x = e.clientX
+      oldPos.y = e.clientY
+
+      $(window).on('mousemove', (e) => {
+        newPos.x = e.clientX
+        newPos.y = e.clientY
+
+      })
+    })
+  }
+
+}
+
 // 游戏
 export class Game {
   // 安全区的位置
