@@ -14,8 +14,10 @@
     "vite": "^4.3.2"
   },
   "dependencies": {
+    "animejs": "^3.2.1",
     "gsap": "^3.11.5",
     "jquery": "^3.6.4",
+    "lodash-es": "^4.17.21",
     "mitt": "^3.0.0"
   }
 }

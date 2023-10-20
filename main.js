@@ -1,7 +1,6 @@
 import './style/index.scss'
 import $ from 'jquery'
-import { gsap } from 'gsap'
-import { Game } from './game'
+import { Game } from './gameNew'
 
 $(function () {
   const $container = $('#app')

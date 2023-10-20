@@ -1,10 +1,10 @@
 import { Attrs } from './config'
-import gsap from 'gsap'
-import { Draggable } from 'gsap/Draggable'
-import { createError } from './utils'
+import anime from 'animejs/lib/anime.es'
+import { createError, randomGet } from './utils'
 import $ from 'jquery'
+import { random } from 'lodash-es'
 
-const { random } = gsap.utils
+
 const AS_TYPE = {
   ATTACKER: 'attacker',
   BULLET: 'bullet'
@@ -18,15 +18,71 @@ class Vector {
     this.x = x
     this.y = y
   }
+  static toAngle(radian) {
+    return radian / Math.PI * 180
+  }
+  static toRadian(angle) {
+    return angle / 180 * Math.PI
+  }
+  /**
+   * 减法
+   * @param {Vector} v
+   */
+  sub(v) {
+    return new Vector(this.x - v.x, this.y - v.y)
+  }
+  /**
+   * 加法
+   * @param {Vector} v
+   */
+  add(v) {
+
+    return new Vector(this.x + v.x, this.y + v.y)
+  }
+  /**
+   *
+   * @param {number} s
+   */
+  mul(s) {
+    return new Vector(this.x * s, this.y * s)
+  }
+  /**
+   * 点乘
+   * @param {Vector} v
+   */
+  dot(v) {
+    return this.x * v.x + this.y * v.y
+  }
+  /**
+   * 长度
+   */
+  norm() {
+    return Math.sqrt(this.x * this.x + this.y * this.y)
+  }
+  /**
+   * 投影
+   * @param {Vector} v
+   */
+  proj(v) {
+    return this.dot(v) / v.norm()
+  }
+  /**
+   * 向量夹角
+   * @param {Vector} v
+   */
+  angleOf(v) {
+    return Math.acos(this.proj(v) / this.norm())
+  }
 
 }
 
 class AnimateObj {
   animate(option = {}) {
-    this.tween = gsap.to(this, {
-      paused: true,
+    this.tween = anime({
+      targets: this,
+      autoplay: false,
       ...option,
-      onUpdate: () => {
+      update: () => {
         this.render()
       }
     })
@@ -37,17 +93,17 @@ class AnimateObj {
     return this
   }
   update(fn) {
-    this.tween?.eventCallback('onUpdate', () => {
+    this.tween.update = () => {
       this.render()
       fn && fn()
-    })
+    }
     return this
   }
   end(fn) {
-    this.tween?.eventCallback('onComplete', () => {
+    this.tween.complete = function () {
       fn && fn()
       this.tween = null
-    })
+    }
     return this
   }
   render() {
@@ -105,7 +161,7 @@ class Block extends AnimateObj {
    */
   dom = null
   /**
-   * @type {gsap.core.Tween|null}
+   * @type {import('animejs').AnimeInstance|null}
    */
   tween = null
   /**
@@ -278,7 +334,7 @@ class Manager {
     if (increment < 0) {
       blocks = blocks.slice(0, -increment)
     } else {
-      const added = Array(increment).fill(null).map(() => new Block({ type: type ? type : random(Attrs).type, asType }))
+      const added = Array(increment).fill(null).map(() => new Block({ type: type ? type : randomGet(Attrs).type, asType }))
       blocks.push(...added)
       this.blocks.push(...added)
     }
@@ -291,11 +347,15 @@ export class Fort {
   angle = 0
   power = 0
   $container = null
+  position = new Vector(0, 0)
+  width = 0
+  height = 0
   constructor($container) {
     this.$container = $container
     this.$guideline = $('<div class="guideline" />')
     this.$fort = $('<div class="fort" />')
     this.$container.append(this.$guideline)
+    this.maxAngleSpan = 120
   }
   rotate() {
 
@@ -303,16 +363,34 @@ export class Fort {
   bindEvent() {
     const oldPos = new Vector(0, 0)
     const newPos = new Vector(0, 0)
+    const center = new Vector(0, 0)
+    let initialAngle = 0
+    const mousemove = (e) => {
+      newPos.x = e.clientX
+      newPos.y = e.clientY
+      let newAngle = newPos.sub(center).angleOf(new Vector(1, 0))
+      if (newPos.x < 0 && newPos.y < 0) {
+        newAngle += Math.PI / 2
+      }
+      if (newPos.x > 0 && newPos.y < 0) {
+        newAngle += Math.PI
+      }
+      this.angle = Vector.toAngle(newAngle)
+    }
+    const mouseup = () => {
+      $(window).off('mousemove', mousemove)
+    }
     this.$fort.on('mousedown', (e) => {
       oldPos.x = e.clientX
       oldPos.y = e.clientY
+      center.x = this.position.x + this.width / 2
+      center.y = this.position.y + this.height / 2
+      initialAngle = oldPos.sub(center).angleOf(new Vector(1, 0))
 
-      $(window).on('mousemove', (e) => {
-        newPos.x = e.clientX
-        newPos.y = e.clientY
-
-      })
+      $(window).on('mousemove', mousemove)
+      $(window).one('mouseup', mouseup)
     })
+
   }
 
 }
@@ -401,8 +479,9 @@ export class Game {
           .update(() => {
             if (this.intoSafeZone(b)) {
               const success = this.collector.collect(b)
-              if (!success) gsap.globalTimeline.pause()
-
+              if (!success) {
+                blocks.forEach((b) => b.tween.pause())
+              }
             }
           })
           .start()
@@ -410,14 +489,10 @@ export class Game {
 
 
     })
-    gsap.ticker.add((time) => {
-      console.log('time', time)
-    })
-
   }
 
 }
 
-export const init = () => {
 
-}
+
+
