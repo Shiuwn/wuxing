@@ -2,7 +2,7 @@ import { Attrs } from './config'
 import anime from 'animejs/lib/anime.es'
 import { createError, randomGet } from './utils'
 import $ from 'jquery'
-import { random } from 'lodash-es'
+import { random, clamp } from 'lodash-es'
 
 
 const AS_TYPE = {
@@ -348,17 +348,27 @@ export class Fort {
   power = 0
   $container = null
   position = new Vector(0, 0)
-  width = 0
-  height = 0
-  constructor($container) {
+  width = 300
+  height = 100
+  /**
+   *
+   * @param {JQuery} $container
+   * @param {Vector} pos
+   */
+
+  constructor($container, pos) {
     this.$container = $container
     this.$guideline = $('<div class="guideline" />')
     this.$fort = $('<div class="fort" />')
     this.$container.append(this.$guideline)
+    this.$container.append(this.$fort)
     this.maxAngleSpan = 120
-  }
-  rotate() {
-
+    if (pos) {
+      this.position.x = pos.x
+      this.position.y = pos.y
+    }
+    this.bindEvent()
+    this.render()
   }
   bindEvent() {
     const oldPos = new Vector(0, 0)
@@ -375,7 +385,7 @@ export class Fort {
       if (newPos.x > 0 && newPos.y < 0) {
         newAngle += Math.PI
       }
-      this.angle = Vector.toAngle(newAngle)
+      this.angle = clamp(this.angle + Vector.toAngle(newAngle) - initialAngle, this.maxAngleSpan / 2, -this.maxAngleSpan / 2)
     }
     const mouseup = () => {
       $(window).off('mousemove', mousemove)
@@ -391,6 +401,13 @@ export class Fort {
       $(window).one('mouseup', mouseup)
     })
 
+  }
+  render() {
+    this.$fort.css({
+      transform: `rotate(${this.angle}rad)`,
+      left: this.position.x,
+      top: this.position.y,
+    })
   }
 
 }
