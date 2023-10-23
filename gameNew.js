@@ -350,6 +350,7 @@ export class Fort {
   position = new Vector(0, 0)
   width = 300
   height = 100
+  #_onRating = () => { }
   /**
    *
    * @param {JQuery} $container
@@ -370,6 +371,9 @@ export class Fort {
     this.bindEvent()
     this.render()
   }
+  onRotating(fn) {
+    this.#_onRating = fn
+  }
   bindEvent() {
     const oldPos = new Vector(0, 0)
     const newPos = new Vector(0, 0)
@@ -378,14 +382,23 @@ export class Fort {
     const mousemove = (e) => {
       newPos.x = e.clientX
       newPos.y = e.clientY
-      let newAngle = newPos.sub(center).angleOf(new Vector(1, 0))
+      let deltaAngle = newPos.sub(center).angleOf(new Vector(1, 0))
       if (newPos.x < 0 && newPos.y < 0) {
-        newAngle += Math.PI / 2
+        deltaAngle += Math.PI / 2
       }
       if (newPos.x > 0 && newPos.y < 0) {
-        newAngle += Math.PI
+        deltaAngle += Math.PI
       }
-      this.angle = clamp(this.angle + Vector.toAngle(newAngle) - initialAngle, this.maxAngleSpan / 2, -this.maxAngleSpan / 2)
+      const newAngle = clamp(this.angle + Vector.toAngle(deltaAngle) - initialAngle, this.maxAngleSpan / 2, -this.maxAngleSpan / 2)
+      if (newAngle !== this.angle) {
+        this.angle = newAngle
+        this.render()
+        try {
+          this.#_onRating(this.angle)
+        } catch (e) {
+          console.error(e)
+        }
+      }
     }
     const mouseup = () => {
       $(window).off('mousemove', mousemove)
