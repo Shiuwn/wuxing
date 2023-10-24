@@ -3,7 +3,25 @@ import anime from 'animejs/lib/anime.es'
 import { createError, randomGet } from './utils'
 import $ from 'jquery'
 import { random, clamp } from 'lodash-es'
-
+import mitt from 'mitt'
+class Emitter {
+  emitter
+  constructor() {
+    this.emitter = mitt()
+  }
+  all(...args) {
+    this.emitter.all(...args)
+  }
+  on(...args) {
+    this.emitter.on(...args)
+  }
+  off(...args) {
+    this.emitter.off(...args)
+  }
+  emit(...args) {
+    this.emitter.emit(...args)
+  }
+}
 
 const AS_TYPE = {
   ATTACKER: 'attacker',
@@ -343,14 +361,13 @@ class Manager {
 }
 
 // 炮台
-export class Fort {
+export class Fort extends Emitter {
   angle = 0
   power = 0
   $container = null
   position = new Vector(0, 0)
   width = 300
   height = 100
-  #_onRating = () => { }
   /**
    *
    * @param {JQuery} $container
@@ -371,8 +388,18 @@ export class Fort {
     this.bindEvent()
     this.render()
   }
-  onRotating(fn) {
-    this.#_onRating = fn
+  showGuideline() {
+    const fort = this
+    this.$guideline.css({
+      display: 'block',
+      left: fort.position.x + fort.width / 2,
+      top: fort.position.y,
+      transformOrigin: '100% 50%',
+      transform: `rotate(${this.angle}rad)`
+    })
+  }
+  updateGuideline() {
+    this.$guideline
   }
   bindEvent() {
     const oldPos = new Vector(0, 0)
@@ -392,28 +419,38 @@ export class Fort {
       const newAngle = clamp(this.angle + Vector.toAngle(deltaAngle) - initialAngle, this.maxAngleSpan / 2, -this.maxAngleSpan / 2)
       if (newAngle !== this.angle) {
         this.angle = newAngle
+        this.emit('rotating', this.angle)
         this.render()
-        try {
-          this.#_onRating(this.angle)
-        } catch (e) {
-          console.error(e)
-        }
       }
     }
     const mouseup = () => {
       $(window).off('mousemove', mousemove)
+      this.emit('rotating.end')
     }
     this.$fort.on('mousedown', (e) => {
+      this.emit('rotating.start')
       oldPos.x = e.clientX
       oldPos.y = e.clientY
       center.x = this.position.x + this.width / 2
       center.y = this.position.y + this.height / 2
       initialAngle = oldPos.sub(center).angleOf(new Vector(1, 0))
-
       $(window).on('mousemove', mousemove)
       $(window).one('mouseup', mouseup)
     })
 
+    this.on('rotating.start', () => {
+      this.showGuideline()
+    })
+    this.on('rotating.end', () => {
+      this.$guideline.css({
+        display: 'block'
+      })
+    })
+    this.on('rotating', (angle) => {
+      this.$guideline.css({
+        transform: `rotate(${angle}rad)`
+      })
+    })
   }
   render() {
     this.$fort.css({
@@ -422,7 +459,6 @@ export class Fort {
       top: this.position.y,
     })
   }
-
 }
 
 // 游戏

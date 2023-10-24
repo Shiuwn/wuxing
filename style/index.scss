@@ -79,8 +79,9 @@ body {
 
 .guideline {
   position: absolute;
+  display: none;
   width: 1px;
-  height: 100%;
+  height: 200%;
   border: 1px dashed #ddd;
   transform: rotate(0);
 }
