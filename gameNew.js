@@ -459,6 +459,9 @@ export class Fort extends Emitter {
       top: this.position.y,
     })
   }
+  fire() {
+    this.emit('fire')
+  }
 }
 
 // 游戏
@@ -479,6 +482,7 @@ export class Game {
     this.$container = $(options.$container)
     this.$container.append(this.collector.$bullets)
     this.createBoundary()
+    this.fort = new Fort(this.$container)
 
   }
   createBoundary() {
