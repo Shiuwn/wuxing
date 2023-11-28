@@ -86,6 +86,9 @@ body {
   transform: rotate(0);
 }
 .fort {
+  position: absolute;
+  bottom: 0;
+  left: calc(50% - 10px);
   width: 20px;
   height: 60px;
   border-radius: 8px;

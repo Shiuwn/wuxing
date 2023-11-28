@@ -366,8 +366,8 @@ export class Fort extends Emitter {
   power = 0
   $container = null
   position = new Vector(0, 0)
-  width = 300
-  height = 100
+  width = 20
+  height = 60
   /**
    *
    * @param {JQuery} $container
@@ -375,7 +375,9 @@ export class Fort extends Emitter {
    */
 
   constructor($container, pos) {
+    super()
     this.$container = $container
+
     this.$guideline = $('<div class="guideline" />')
     this.$fort = $('<div class="fort" />')
     this.$container.append(this.$guideline)
@@ -384,6 +386,9 @@ export class Fort extends Emitter {
     if (pos) {
       this.position.x = pos.x
       this.position.y = pos.y
+    } else {
+      this.position.x = this.$container.width() / 2 - this.width / 2
+      this.position.y = this.$container.height() - this.height
     }
     this.bindEvent()
     this.render()
@@ -404,36 +409,26 @@ export class Fort extends Emitter {
   bindEvent() {
     const oldPos = new Vector(0, 0)
     const newPos = new Vector(0, 0)
-    const center = new Vector(0, 0)
     let initialAngle = 0
     const mousemove = (e) => {
       newPos.x = e.clientX
       newPos.y = e.clientY
-      let deltaAngle = newPos.sub(center).angleOf(new Vector(1, 0))
-      if (newPos.x < 0 && newPos.y < 0) {
-        deltaAngle += Math.PI / 2
-      }
-      if (newPos.x > 0 && newPos.y < 0) {
-        deltaAngle += Math.PI
-      }
-      const newAngle = clamp(this.angle + Vector.toAngle(deltaAngle) - initialAngle, this.maxAngleSpan / 2, -this.maxAngleSpan / 2)
-      if (newAngle !== this.angle) {
-        this.angle = newAngle
-        this.emit('rotating', this.angle)
-        this.render()
-      }
+      let delta = newPos.sub(oldPos)
+      let deltaAngle = Math.atan2(delta.y, delta.x)
+      this.emit('rotating', deltaAngle)
+      // this.angle = clamp(initialAngle + deltaAngle, -this.maxAngleSpan / 180 * Math.PI, this.maxAngleSpan / 180 * Math.PI)
+      this.angle = initialAngle + deltaAngle
+      this.render()
     }
     const mouseup = () => {
       $(window).off('mousemove', mousemove)
       this.emit('rotating.end')
     }
     this.$fort.on('mousedown', (e) => {
+      initialAngle = this.angle
       this.emit('rotating.start')
       oldPos.x = e.clientX
       oldPos.y = e.clientY
-      center.x = this.position.x + this.width / 2
-      center.y = this.position.y + this.height / 2
-      initialAngle = oldPos.sub(center).angleOf(new Vector(1, 0))
       $(window).on('mousemove', mousemove)
       $(window).one('mouseup', mouseup)
     })
@@ -455,8 +450,10 @@ export class Fort extends Emitter {
   render() {
     this.$fort.css({
       transform: `rotate(${this.angle}rad)`,
-      left: this.position.x,
-      top: this.position.y,
+      width: this.width + 'px',
+      height: this.height + 'px',
+      left: this.position.x + 'px',
+      top: this.top + 'px'
     })
   }
   fire() {

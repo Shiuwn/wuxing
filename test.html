@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    #drag-me {
+      width: 100px;
+      height: 100px;
+      background-color: red;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="drag-me"></div>
+
+  <script>
+    const element = document.getElementById('drag-me');
+
+    let isDragging = false;
+    let initialMousePos = { x: 0, y: 0 };
+    let initialElementPos = { x: 0, y: 0 };
+
+    element.addEventListener('mousedown', (event) => {
+      isDragging = true;
+      initialMousePos.x = event.clientX;
+      initialMousePos.y = event.clientY;
+      initialElementPos.x = element.offsetLeft;
+      initialElementPos.y = element.offsetTop;
+    });
+
+    document.addEventListener('mousemove', (event) => {
+      if (!isDragging) return;
+
+      const deltaX = event.clientX - initialMousePos.x;
+      const deltaY = event.clientY - initialMousePos.y;
+      const elementWidth = element.offsetWidth;
+      const elementHeight = element.offsetHeight;
+
+      // element.style.left = (initialElementPos.x + deltaX) + 'px';
+      // element.style.top = (initialElementPos.y + deltaY) + 'px';
+
+      const rotation = Math.atan2(deltaY, deltaX);
+      element.style.transform = `translate(${element.offsetLeft}px, ${element.offsetTop}px) rotate(${rotation}rad)`;
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+  </script>
+</body>
+
+</html>
