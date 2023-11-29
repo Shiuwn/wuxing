@@ -399,7 +399,7 @@ export class Fort extends Emitter {
       display: 'block',
       left: fort.position.x + fort.width / 2,
       top: fort.position.y,
-      transformOrigin: '100% 50%',
+      transformOrigin: '50% 100%',
       transform: `rotate(${this.angle}rad)`
     })
   }
@@ -409,15 +409,16 @@ export class Fort extends Emitter {
   bindEvent() {
     const oldPos = new Vector(0, 0)
     const newPos = new Vector(0, 0)
+    const center = new Vector(0, 0)
     let initialAngle = 0
+    let startAngle = 0
     const mousemove = (e) => {
-      newPos.x = e.clientX
-      newPos.y = e.clientY
-      let delta = newPos.sub(oldPos)
-      let deltaAngle = Math.atan2(delta.y, delta.x)
-      this.emit('rotating', deltaAngle)
-      // this.angle = clamp(initialAngle + deltaAngle, -this.maxAngleSpan / 180 * Math.PI, this.maxAngleSpan / 180 * Math.PI)
+      newPos.x = e.clientX - center.x
+      newPos.y = e.clientY - center.y
+      let deltaAngle = Math.atan2(newPos.y, newPos.x) - startAngle
       this.angle = initialAngle + deltaAngle
+      this.angle = clamp(this.angle, Vector.toRadian(-this.maxAngleSpan/2), Vector.toRadian(this.maxAngleSpan/2))
+      this.emit('rotating', this.angle)
       this.render()
     }
     const mouseup = () => {
@@ -427,8 +428,12 @@ export class Fort extends Emitter {
     this.$fort.on('mousedown', (e) => {
       initialAngle = this.angle
       this.emit('rotating.start')
-      oldPos.x = e.clientX
-      oldPos.y = e.clientY
+      const ref = this.$fort.get(0).getBoundingClientRect()
+      center.x = ref.left + this.width / 2
+      center.y = ref.top + this.height
+      oldPos.x = e.clientX - center.x
+      oldPos.y = e.clientY - center.y
+      startAngle = Math.atan2(oldPos.y, oldPos.x)
       $(window).on('mousemove', mousemove)
       $(window).one('mouseup', mouseup)
     })
@@ -559,7 +564,5 @@ export class Game {
   }
 
 }
-
-
 
 
