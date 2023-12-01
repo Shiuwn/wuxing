@@ -95,3 +95,13 @@ body {
   background-color: tomato;
   transform-origin: bottom center;
 }
+.bullets {
+  position: absolute;
+  bottom: 0;
+  right: 4px;
+  height: 32px;
+  display: flex;
+  gap: 4px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
